@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+
+    <style type="text/css">
+      #mynetwork {
+        width: 900px;
+        height: 600px;
+        border: 1px solid lightgray;
+      }
+      #contextMenu {
+        position: absolute;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+      }
+      .button-container button {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <br />
+    <div>
+      <input type="text" id="search" placeholder="Search for a node..." />
+      <button onclick="searchNode()">Search</button>
+    </div>
+
+    <br />
+    <br />
+
+    <div>
+      <input type="text" id="filterName" placeholder="Filter by name..." />
+      <select id="filterType">
+        <option value="">All Types</option>
+        <option value="function">Function</option>
+        <option value="class">Class</option>
+      </select>
+      <input
+        type="number"
+        id="filterInDegree"
+        placeholder="Minimum In-Degree"
+        min="0"
+      />
+
+      <input
+        type="number"
+        id="filterOutDegree"
+        placeholder="Minimum Out-Degree"
+        min="0"
+      />
+      <button onclick="applyFilters()">Apply Filters</button>
+      <button onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <br />
+    <br />
+
+    <div id="mynetwork"></div>
+
+    <script type="text/javascript">
+      function createNetwork(nodesData, edgesData) {
+        const nodeStyles = {
+          class: {
+            shape: "ellipse",
+          },
+          function: {
+            color: "#99ccff", // Light blue
+            shape: "box",
+          },
+        };
+
+        // Create an array with nodes
+        const nodes = new vis.DataSet(
+          nodesData.map((node) => ({
+            ...node,
+            ...nodeStyles[node.group],
+          }))
+        );
+
+        // create an array with edges
+        var edges = new vis.DataSet(edgesData);
+
+        // create a network
+        var container = document.getElementById("mynetwork");
+
+        // provide the data in the vis format
+        var data = {
+          nodes: nodes,
+          edges: edges,
+        };
+
+        const options = {
+          edges: {
+            font: {
+              align: "middle",
+            },
+            smooth: {
+              enabled: true,
+              type: "dynamic",
+            },
+          },
+          layout: {
+            hierarchical: true,
+            improvedLayout: true,
+          },
+          physics: {
+            enabled: false,
+            solver: "forceAtlas2Based",
+            barnesHut: {
+              springLength: 200, // Adjust this value to make edges longer
+            },
+            forceAtlas2Based: {
+              springLength: 200,
+              avoidOverlap: 1,
+            },
+            repulsion: {
+              nodeDistance: 200, // Adjust this value to increase distance between nodes
+            },
+            hierarchicalRepulsion: {
+              nodeDistance: 200, // Adjust this value if using hierarchical layout
+            },
+          },
+        };
+
+        // initialize your network!
+        var network = new vis.Network(container, data, options);
+
+        // Add search functionality
+        window.searchNode = function () {
+          network.unselectAll();
+          var searchTerm = document
+            .getElementById("search")
+            .value.trim()
+            .toLowerCase();
+          var foundNodes = nodes.get({
+            filter: function (item) {
+              return item.label.toLowerCase().startsWith(searchTerm);
+            },
+          });
+
+          if (foundNodes.length > 0) {
+            var nodeIds = foundNodes.map((node) => node.id);
+            network.selectNodes(nodeIds);
+
+            // Optionally zoom to fit the selected nodes if more than one node is found
+            network.fit({
+              nodes: nodeIds,
+              animation: true,
+              scale: 1, // Adjust this value as needed to ensure all nodes are visible
+            });
+          } else {
+            network.unselectAll();
+            alert('No nodes found starting with "' + searchTerm + '"');
+          }
+        };
+
+        window.applyFilters = function () {
+          const nameFilter = document
+            .getElementById("filterName")
+            .value.trim()
+            .toLowerCase();
+          const typeFilter = document.getElementById("filterType").value;
+          const inDegreeFilter =
+            parseInt(document.getElementById("filterInDegree").value, 10) || 0;
+          const outDegreeFilter =
+            parseInt(document.getElementById("filterOutDegree").value, 10) || 0;
+
+          nodes.update(
+            nodes.get().map((node) => {
+              const inDegree = edges.get({
+                filter: (edge) => edge.to === node.id,
+              }).length;
+              const outDegree = edges.get({
+                filter: (edge) => edge.from === node.id,
+              }).length;
+
+              const isVisible =
+                (node.label.toLowerCase().includes(nameFilter) ||
+                  nameFilter === "") &&
+                (node.group === typeFilter || typeFilter === "") &&
+                inDegree >= inDegreeFilter &&
+                outDegree >= outDegreeFilter;
+
+              return { id: node.id, hidden: !isVisible };
+            })
+          );
+        };
+
+        window.clearFilters = function () {
+          // Reset all filters
+          document.getElementById("filterName").value = "";
+          document.getElementById("filterType").value = "";
+          document.getElementById("filterInDegree").value = "";
+          document.getElementById("filterOutDegree").value = "";
+
+          // Update the nodes and edges to set hidden false
+          nodes.update(
+            nodes.get().map((node) => ({
+              id: node.id,
+              hidden: false,
+            }))
+          );
+
+          edges.update(
+            edges.get().map((edge) => ({
+              id: edge.id,
+              hidden: false,
+            }))
+          );
+
+          // Redraw or refocus the network
+          network.fit({ animation: true });
+        };
+
+        network.on("oncontext", function (params) {
+          params.event.preventDefault();
+          var nodeId = this.getNodeAt(params.pointer.DOM);
+          if (nodeId) {
+            var node = nodes.get(nodeId);
+            openContextMenu(node, params.event.pageX, params.event.pageY);
+          }
+        });
+
+        window.gotoCode = function (lineno) {
+          // Implementation for opening file at specific line
+          const vscode = acquireVsCodeApi();
+          vscode.postMessage({ command: "goto", lineno: lineno });
+        };
+
+        window.setBreakpoint = function (lineno) {
+          const vscode = acquireVsCodeApi();
+          vscode.postMessage({ command: "setBreakpoint", lineno: lineno });
+        };
+
+        window.openContextMenu = function (node, x, y) {
+          const existingMenu = document.getElementById("contextMenu");
+          if (existingMenu) {
+            existingMenu.remove();
+          }
+
+          const contextMenu = document.createElement("div");
+          contextMenu.id = "contextMenu";
+          contextMenu.style.position = "absolute";
+          contextMenu.style.left = `${x}px`;
+          contextMenu.style.top = `${y}px`;
+          contextMenu.innerHTML = `
+            <div class="button-container">
+                <button onclick="gotoCode(${node.lineno})">Go to Code</button>
+                <button onclick="setBreakpoint(${node.lineno})">Set Breakpoint</button>
+            </div>
+        `;
+
+          document.body.appendChild(contextMenu);
+        };
+
+        document.addEventListener(
+          "click",
+          function (event) {
+            const contextMenu = document.getElementById("contextMenu");
+            if (contextMenu && !contextMenu.contains(event.target)) {
+              contextMenu.remove();
+            }
+          },
+          true
+        );
+      }
+
+      // The script will be executed in the HTML file, where nodesData and edgesData will be defined dynamically
+    </script>
+    <script type="text/javascript">
+      document.addEventListener('DOMContentLoaded', (event) => {
+          const nodesData = {{nodes}};
+          const edgesData = {{edges}};
+          createNetwork(nodesData, edgesData);
+      });
+    </script>
+  </body>
+</html>

@@ -2,6 +2,7 @@ const vscode = require("vscode");
 const { exec } = require("child_process");
 const vis = require("vis-network");
 const fs = require("fs");
+const path = require("path");
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -22,6 +23,7 @@ function activate(context) {
       // checkAndInstallDependencies();
 
       const editor = vscode.window.activeTextEditor;
+      console.log("editor: ", editor.document.fileName);
       if (!editor) {
         vscode.window.showInformationMessage("No Python file is open");
         return;
@@ -41,38 +43,83 @@ function activate(context) {
           console.error(`exec error: ${error}`);
           return;
         }
-        panel.webview.html = getWebviewContent(stdout);
+        panel.webview.html = getWebviewContent(stdout, context);
       });
+
+      panel.webview.onDidReceiveMessage(
+        (message) => {
+          if (message.command === "goto") {
+            // Ensure the correct document is open and focused
+            vscode.workspace
+              .openTextDocument(editor.document.uri)
+              .then((doc) => {
+                vscode.window
+                  .showTextDocument(doc, {
+                    preserveFocus: false,
+                    preview: false,
+                  })
+                  .then((editor) => {
+                    const line = message.lineno - 1;
+                    const pos = new vscode.Position(line, 0);
+                    editor.selection = new vscode.Selection(pos, pos);
+                    editor.revealRange(
+                      new vscode.Range(pos, pos),
+                      vscode.TextEditorRevealType.InCenter
+                    );
+                  });
+              });
+          } else if (message.command === "setBreakpoint") {
+            vscode.workspace
+              .openTextDocument(editor.document.uri)
+              .then((doc) => {
+                vscode.window
+                  .showTextDocument(doc, {
+                    preserveFocus: false,
+                    preview: false,
+                  })
+                  .then((editor) => {
+                    const line = message.lineno - 1;
+                    const uri = editor.document.uri; // Get the URI of the current document
+                    const range = new vscode.Range(
+                      line,
+                      0,
+                      line,
+                      editor.document.lineAt(line).text.length
+                    );
+                    const location = new vscode.Location(uri, range); // Create a Location object
+
+                    const breakpoint = new vscode.SourceBreakpoint(location);
+                    vscode.debug.addBreakpoints([breakpoint]);
+                  });
+              });
+          }
+        },
+        undefined,
+        context.subscriptions
+      );
     }
   );
 
   context.subscriptions.push(disposable);
 }
 
-function getWebviewContent(graphData) {
+function getWebviewContent(graphData, context = null) {
   const graph = JSON.parse(graphData); // Parse the JSON data
   const nodes = graph.nodes;
   const edges = graph.links;
 
-  try {
-    nodes.forEach((item, index) => {
-      console.log(`Item at index ${index}:`, item);
-      // each item is a dict with type and id
-    });
-    edges.forEach((item, index) => {
-      console.log(`Item at index ${index}:`, item);
-      // each item is a dict with type, source and target
-    });
-  } catch (e) {
-    console.log(e);
-  }
-
   //now we'll need to convert nodes and edges so they can fit into the vis.js network
   // look at the comment above to see old format
+
+  nodes.forEach((node) => {
+    console.log(node.id + " starts at line: " + node.lineno);
+  });
+
   const visNodes = nodes.map((node) => ({
     id: node.id,
     label: node.id,
     group: node.type,
+    lineno: node.lineno,
   }));
   const visEdges = edges.map((edge) => ({
     from: edge.source,
@@ -84,46 +131,19 @@ function getWebviewContent(graphData) {
   console.log("Vis nodes:", visNodes);
   console.log("Vis edges:", visEdges);
 
-  return `
-        <!DOCTYPE html>
-        <html>
-<head>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  // Read the HTML template file
+  const templatePath = vscode.Uri.joinPath(
+    context.extensionUri,
+    "frontend",
+    "template.html"
+  ).fsPath;
+  let template = fs.readFileSync(templatePath, "utf8");
 
-    <style type="text/css">
-        #mynetwork {
-            width: 600px;
-            height: 400px;
-            border: 1px solid lightgray;
-        }
-    </style>
-</head>
-<body>
-<div id="mynetwork"></div>
+  // Replace placeholders with actual data
+  template = template.replace("{{nodes}}", JSON.stringify(visNodes));
+  template = template.replace("{{edges}}", JSON.stringify(visEdges));
 
-<script type="text/javascript">
-    // create an array with nodes
-    var nodes = new vis.DataSet(${JSON.stringify(visNodes)});
-
-    // create an array with edges
-    var edges = new vis.DataSet(${JSON.stringify(visEdges)});
-
-    // create a network
-    var container = document.getElementById('mynetwork');
-
-    // provide the data in the vis format
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
-    var options = {};
-
-    // initialize your network!
-    var network = new vis.Network(container, data, options);
-</script>
-</body>
-</html>
-    `;
+  return template;
 }
 
 // This method is called when your extension is deactivated

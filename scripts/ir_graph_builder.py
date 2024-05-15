@@ -22,7 +22,7 @@ class IRGraphBuilder(ast.NodeVisitor):
 
     def visit_Import(self, node):
         for alias in node.names:
-            self.graph.add_node(alias.name, type='module')
+            self.graph.add_node(alias.name, type='module', lineno=node.lineno)
             self.module_functions[alias.name] = []
 
     def visit_ImportFrom(self, node):
@@ -30,7 +30,7 @@ class IRGraphBuilder(ast.NodeVisitor):
         for alias in node.names:
             alias_name = alias.asname if alias.asname else alias.name
             full_name = f'{node.module}.{alias_name}'
-            self.graph.add_node(full_name, type='function')
+            self.graph.add_node(full_name, type='function', lineno=node.lineno)
             self.module_functions.setdefault(module, []).append(alias.name)
             self.imported_functions[alias_name] = (node.module, alias_name)
             # if self.current_function:
@@ -45,7 +45,7 @@ class IRGraphBuilder(ast.NodeVisitor):
         self.current_function = func_name
         if self.current_module:
             if func_name not in self.graph:
-                self.graph.add_node(func_name, type='function')
+                self.graph.add_node(func_name, type='function', lineno=node.lineno)
                 self.changed = True
             elif node.decorator_list:
                 for decorator in node.decorator_list:
@@ -223,7 +223,7 @@ class IRGraphBuilder(ast.NodeVisitor):
 
         if lambda_id not in self.lambda_set:
             self.lambda_set.add(lambda_id)
-            self.graph.add_node(lambda_label, type='lambda')
+            self.graph.add_node(lambda_label, type='lambda', lineno=node.lineno)
             self.changed = True
 
             if not self.graph.has_edge(from_node, lambda_label):
@@ -240,7 +240,7 @@ class IRGraphBuilder(ast.NodeVisitor):
             self.known_classes.add(node.name)
             self.changed = True
         self.current_class = node.name  # Set the current class context
-        self.graph.add_node(class_full_name, type='class')
+        self.graph.add_node(class_full_name, type='class', lineno=node.lineno)
 
         # Handle inheritance: check each base class specified in the class definition
         for base in node.bases:
