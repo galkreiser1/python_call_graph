@@ -1,0 +1,8 @@
+{
+    "main.return_func": [],
+    "main.nested_return_func": [],
+    "main.func": [],
+    "main": [
+        "main.func"
+    ]
+}

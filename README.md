@@ -62,10 +62,20 @@ The benchmarks for each test under each category contain both sound and complete
 A call graph is sound if it contains all the edges that exist in the expected call grpah of a code (no false negatives).
 A call graph is complete if it doesn't contain any edges that don't exist in the expected call graph (no false positives).
 
-Most of the benchmarks tests were taken from the article, but some of them were edited and simplified to fit this current graph
-as it still lacks features that are supported in the article.
+Most of the benchmarks tests were taken from the article, but some of them were edited and simplified to fit this current graph as it still lacks features that are supported in the article.
 Additionally, the article had more benchmarks that this tool doesnt support.
 The ones that were simplified are: classes, functions, imports, lambdas.
 
-Also, in benchmarks 'classes' and 'mro' the soundness results are more significant as this graph also supports inhertiance and 'contain method' edge types which are not tested in the article benchmarks, resulting in this graph generating more edges than expected
-(and thus making it not complete).
+Also, in benchmarks 'classes' and 'mro' the soundness results are more significant, as this graph also supports inhertiance and 'contain method' edge types which are not tested in the article benchmarks, resulting in this graph generating more edges than expected (and thus making it not complete).
+
+--Results--
+
+Overall the graph succeeds in most basic use-cases accross the different benchmark categories it's supposed to support
+For example - basic function calls, function assignments, imported function calls, class instances, multiple class inhertiance, super() invocation, self calls, inherited methods resolution, calls to builin functions, basic exception raise, and basic lambdas.
+
+In the assignment benchmark it succeeded partially, showing support for chained and tuple assignments.
+
+In the list benchmark it also showed only partial success, as the graph will draw 'potential call' edges to all functions in a list which is assigned to a variable.
+
+In the direct_calls benchmark, which was taken 'as-is' from the article, we can see some of the limitations of this tool
+in more complex use-cases of function-calls.
