@@ -34,7 +34,7 @@ function activate(context) {
 
       const scriptPath = vscode.Uri.joinPath(
         context.extensionUri,
-        "scripts",
+        "backend",
         "graph_builder.py"
       ).fsPath;
 
