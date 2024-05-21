@@ -1,0 +1,11 @@
+{
+    "main.process_data": [
+        "main.func"
+    ],
+    "main.func": [],
+    "main": [
+        "main.process_data",
+        "main.lambda: (lambda x: x ** 3)"
+    ],
+    "main.lambda: (lambda x: x ** 3)": []
+}

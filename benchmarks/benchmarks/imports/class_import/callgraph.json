@@ -1,0 +1,8 @@
+{
+    "module.MyClass": [],
+    "module.MyClass.method": [],
+    "main": [
+        "module.MyClass",
+        "module.MyClass.method"
+    ]
+}

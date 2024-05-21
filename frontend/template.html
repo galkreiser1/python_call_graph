@@ -38,23 +38,32 @@
 
     <div>
       <input type="text" id="filterName" placeholder="Filter by name..." />
-      <select id="filterType">
+      <!-- <select id="filterType">
         <option value="">All Types</option>
         <option value="function">Function</option>
         <option value="class">Class</option>
+      </select> -->
+      <select id="filterEdgeType">
+        <option value="">All Edge Types</option>
+        <option value="call">calls</option>
+        <option value="contains">contains</option>
+        <option value="potential_call">potential_call</option>
+        <option value="uses-lambda">uses-lambda</option>
+        <option value="inherits">inherits</option>
+        <option value="defines">defines</option>
       </select>
       <input
         type="number"
         id="filterInDegree"
-        placeholder="Minimum In-Degree"
-        min="0"
+        placeholder="In-Degree"
+        value=""
       />
 
       <input
         type="number"
         id="filterOutDegree"
-        placeholder="Minimum Out-Degree"
-        min="0"
+        placeholder="Out-Degree"
+        value=""
       />
       <button onclick="applyFilters()">Apply Filters</button>
       <button onclick="clearFilters()">Clear Filters</button>
@@ -69,11 +78,12 @@
       function createNetwork(nodesData, edgesData) {
         const nodeStyles = {
           class: {
-            shape: "ellipse",
+            shape: "box",
+            color: "#ffcc99", // Light orange
           },
           function: {
+            shape: "ellipse",
             color: "#99ccff", // Light blue
-            shape: "box",
           },
         };
 
@@ -81,7 +91,9 @@
         const nodes = new vis.DataSet(
           nodesData.map((node) => ({
             ...node,
-            ...nodeStyles[node.group],
+            ...(nodeStyles[node.group] || {
+              color: "#cc99ff", // Light purple
+            }),
           }))
         );
 
@@ -101,6 +113,10 @@
           edges: {
             font: {
               align: "middle",
+              color: "red",
+              size: 20,
+              background: "black",
+              letterSpacing: 2,
             },
             smooth: {
               enabled: true,
@@ -167,47 +183,97 @@
             .getElementById("filterName")
             .value.trim()
             .toLowerCase();
-          const typeFilter = document.getElementById("filterType").value;
-          const inDegreeFilter =
-            parseInt(document.getElementById("filterInDegree").value, 10) || 0;
-          const outDegreeFilter =
-            parseInt(document.getElementById("filterOutDegree").value, 10) || 0;
+          // const typeFilter = document.getElementById("filterType").value;
+          const edgeTypeFilter =
+            document.getElementById("filterEdgeType").value;
+
+          const rawInDegreeValue =
+            document.getElementById("filterInDegree").value;
+          let inDegreeFilter =
+            rawInDegreeValue === "" ? 0 : parseInt(rawInDegreeValue, 10) || 0;
+          if (isNaN(inDegreeFilter)) {
+            inDegreeFilter = 0; //
+          }
+
+          const rawOutDegreeValue =
+            document.getElementById("filterOutDegree").value;
+          let outDegreeFilter =
+            rawOutDegreeValue === "" ? 0 : parseInt(rawOutDegreeValue, 10) || 0;
+          if (isNaN(outDegreeFilter)) {
+            outDegreeFilter = 0;
+          }
+
+          // const inDegreeFilter =
+          //   parseInt(document.getElementById("filterInDegree").value, 10) || 0;
+          // const outDegreeFilter =
+          //   parseInt(document.getElementById("filterOutDegree").value, 10) || 0;
+
+          const visibleNodes = new Set();
+
+          edges.update(
+            edges.get().map((edge) => {
+              const isVisible =
+                edgeTypeFilter === "" || edge.label === edgeTypeFilter;
+              if (isVisible) {
+                visibleNodes.add(edge.from);
+                visibleNodes.add(edge.to);
+              }
+              return { ...edge, hidden: !isVisible };
+            })
+          );
 
           nodes.update(
             nodes.get().map((node) => {
-              const inDegree = edges.get({
-                filter: (edge) => edge.to === node.id,
-              }).length;
-              const outDegree = edges.get({
-                filter: (edge) => edge.from === node.id,
-              }).length;
+              const inDegree =
+                edges.get({
+                  filter: (edge) => edge.to === node.id,
+                }).length || 0;
+              const outDegree =
+                edges.get({
+                  filter: (edge) => edge.from === node.id,
+                }).length || 0;
 
+              const originalColor = nodeStyles[node.group]?.color || "#cc99ff";
               const isVisible =
                 (node.label.toLowerCase().includes(nameFilter) ||
                   nameFilter === "") &&
-                (node.group === typeFilter || typeFilter === "") &&
-                inDegree >= inDegreeFilter &&
-                outDegree >= outDegreeFilter;
+                (inDegreeFilter == "" || inDegree >= inDegreeFilter) &&
+                (outDegreeFilter == "" || outDegree >= outDegreeFilter) &&
+                visibleNodes.has(node.id);
+              // (node.group === typeFilter || typeFilter === "") &&
 
-              return { id: node.id, hidden: !isVisible };
+              return { id: node.id, hidden: !isVisible, color: originalColor };
             })
           );
+
+          // nodes.update(
+          //   nodes.get().map((node) => {
+          //     const isVisible = visibleNodes.has(node.id);
+          //     return { ...node, hidden: !isVisible };
+          //   })
+          // );
         };
 
         window.clearFilters = function () {
           // Reset all filters
           document.getElementById("filterName").value = "";
-          document.getElementById("filterType").value = "";
           document.getElementById("filterInDegree").value = "";
           document.getElementById("filterOutDegree").value = "";
+          document.getElementById("filterEdgeType").value = "";
 
           // Update the nodes and edges to set hidden false
           nodes.update(
             nodes.get().map((node) => ({
               id: node.id,
               hidden: false,
+              color: nodeStyles[node.group]?.color || "#cc99ff",
             }))
           );
+          //   nodes.get().map((node) => ({
+          //     id: node.id,
+          //     hidden: false,
+          //   }))
+          // );
 
           edges.update(
             edges.get().map((edge) => ({

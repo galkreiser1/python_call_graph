@@ -35,7 +35,7 @@ function activate(context) {
       const scriptPath = vscode.Uri.joinPath(
         context.extensionUri,
         "scripts",
-        "ir_graph_builder.py"
+        "graph_builder.py"
       ).fsPath;
 
       exec(`python ${scriptPath} ${filePath}`, (error, stdout, stderr) => {
@@ -128,9 +128,6 @@ function getWebviewContent(graphData, context = null) {
     arrows: "to",
   }));
 
-  console.log("Vis nodes:", visNodes);
-  console.log("Vis edges:", visEdges);
-
   // Read the HTML template file
   const templatePath = vscode.Uri.joinPath(
     context.extensionUri,
@@ -160,6 +157,20 @@ print('Missing packages')
 `;
 
   const dependencies = ["networkx", "astor"];
+
+  exec("pip install networkx", (error, stdout, stderr) => {
+    if (error) {
+      console.log("Error installing packages:", error);
+      vscode.window.showErrorMessage(
+        "Failed to install required packages. Please install manually."
+      );
+    } else {
+      console.log("Packages installed successfully:", stdout);
+      vscode.window.showInformationMessage(
+        "All required packages installed successfully."
+      );
+    }
+  });
 
   exec("pip install astor", (error, stdout, stderr) => {
     if (error) {

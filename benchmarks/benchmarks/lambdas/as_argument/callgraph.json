@@ -1,0 +1,8 @@
+{
+    "main.process_data": [],
+    "main.<lambda>": [],
+    "main": [
+        "main.process_data",
+        "main.lambda: (lambda x: x ** 3)"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "main.A": [
+        "main.Exception",
+        "main.A.__init__"
+    ],
+    "main.Exception": [],
+    "main.A.__init__": [],
+    "main": [
+        "main.A",
+        "main.a"
+    ],
+    "main.a": []
+}

@@ -1,0 +1,8 @@
+{
+    "module.function1": [],
+    "module.function2": [],
+    "main": [
+        "module.function1",
+        "module.function2"
+    ]
+}

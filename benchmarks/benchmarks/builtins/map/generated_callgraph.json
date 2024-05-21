@@ -1,0 +1,13 @@
+{
+    "main.func": [],
+    "main": [
+        "<builtin>.map",
+        "main.r"
+    ],
+    "<builtin>.map": [],
+    "main.func2": [
+        "main.func"
+    ],
+    "main.func3": [],
+    "main.r": []
+}

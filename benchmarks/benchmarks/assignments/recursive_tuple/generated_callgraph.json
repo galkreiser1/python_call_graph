@@ -1,0 +1,22 @@
+{
+    "main.func1": [],
+    "main.func2": [],
+    "main.func3": [],
+    "main.func4": [],
+    "main.func5": [],
+    "main.func6": [],
+    "main": [
+        "main.a",
+        "main.b",
+        "main.c",
+        "main.d",
+        "main.e",
+        "main.func5",
+        "main.func6"
+    ],
+    "main.a": [],
+    "main.b": [],
+    "main.c": [],
+    "main.d": [],
+    "main.e": []
+}

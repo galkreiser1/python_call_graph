@@ -1,0 +1,10 @@
+{
+    "main": [
+        "<builtin>.join",
+        "<builtin>.split",
+        "<builtin>.items"
+    ],
+    "<**PyStr**>.join": [],
+    "<**PyStr**>.split": [],
+    "<**PyDict**>.items": []
+}

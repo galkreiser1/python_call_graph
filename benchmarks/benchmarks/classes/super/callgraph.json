@@ -1,0 +1,15 @@
+{
+    "main.Base": [],
+    "main.Base.base_action": [],
+    "main.Derived": [
+        "main.Base"
+    ],
+    "main.Derived.derived_action": [
+        "main.Base.base_action"
+    ],
+    "main": [
+        "main.Derived",
+        "main.Derived.derived_action"
+
+    ]
+}

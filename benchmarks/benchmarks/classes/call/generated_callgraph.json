@@ -1,0 +1,10 @@
+{
+    "main.MyClass": [
+        "main.MyClass.func"
+    ],
+    "main.MyClass.func": [],
+    "main": [
+        "main.MyClass",
+        "main.MyClass.func"
+    ]
+}

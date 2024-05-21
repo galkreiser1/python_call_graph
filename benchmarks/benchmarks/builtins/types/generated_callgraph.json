@@ -1,0 +1,10 @@
+{
+    "main": [
+        "<builtin>.join",
+        "<builtin>.split",
+        "<builtin>.items"
+    ],
+    "<builtin>.join": [],
+    "<builtin>.split": [],
+    "<builtin>.items": []
+}

@@ -28,6 +28,10 @@
     "pretest": "npm run lint",
     "test": "vscode-test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galkreiser1/python_call_graph.git"
+  },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",

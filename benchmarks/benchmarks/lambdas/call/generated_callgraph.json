@@ -1,0 +1,6 @@
+{
+    "main.lambda: lambda x: x + 1": [],
+    "main": [
+        "main.lambda: lambda x: x + 1"
+    ]
+}

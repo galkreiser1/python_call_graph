@@ -1,0 +1,10 @@
+{
+    "main": [
+        "<builtin>.list",
+        "<builtin>.filter",
+        "main.lambda: (lambda x: x % 2 == 0)"
+    ],
+    "<builtin>.list": [],
+    "<builtin>.filter": [],
+    "main.lambda: (lambda x: x % 2 == 0)": []
+}

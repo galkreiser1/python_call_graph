@@ -1,0 +1,25 @@
+{
+    "main.A": [
+        "main.A.__init__",
+        "main.A.func"
+    ],
+    "main.A.__init__": [],
+    "main.A.func": [],
+    "main.B": [
+        "main.A"
+    ],
+    "main.C": [
+        "main.A",
+        "main.C.func"
+    ],
+    "main.C.func": [],
+    "main.D": [
+        "main.B",
+        "main.C"
+    ],
+    "main": [
+        "main.D",
+        "main.A.__init__",
+        "main.C.func"
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "main.AnotherClass": [
+        "main.AnotherClass.method_one",
+        "main.AnotherClass.method_two"
+    ],
+    "main.AnotherClass.method_one": [],
+    "main.AnotherClass.method_two": [],
+    "main": [
+        "main.AnotherClass",
+        "main.AnotherClass.method_one",
+        "main.AnotherClass.method_two"
+    ]
+}
