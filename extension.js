@@ -23,7 +23,6 @@ function activate(context) {
       // checkAndInstallDependencies();
 
       const editor = vscode.window.activeTextEditor;
-      console.log("editor: ", editor.document.fileName);
       if (!editor) {
         vscode.window.showInformationMessage("No Python file is open");
         return;

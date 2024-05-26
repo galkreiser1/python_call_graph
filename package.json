@@ -2,7 +2,7 @@
   "name": "python-call-graph",
   "displayName": "Python Call Graph",
   "description": "A tool aimed to create a call graph for python code files, including function calls and class inheritance.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.89.0"
   },
