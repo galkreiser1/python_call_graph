@@ -158,7 +158,7 @@
             .toLowerCase();
           var foundNodes = nodes.get({
             filter: function (item) {
-              return item.label.toLowerCase().startsWith(searchTerm);
+              return item.label.toLowerCase().includes(searchTerm);
             },
           });
 
